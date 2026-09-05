@@ -3,6 +3,7 @@
   "package": "com.mythup.commandkit.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
-    "CommandSuggestionsMixin"
+    "CommandSuggestionsMixin",
+    "ClientPacketListenerMixin"
   ]
 }

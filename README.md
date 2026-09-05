@@ -11,6 +11,8 @@ It provides a reusable CommandKit API for other client mods.
 - Player, literal, player-or-literal, repeatable, and rest-of-message arguments.
 - Dynamic player suggestions from the current client connection.
 - Server/context predicates for enabling definitions only where appropriate.
+- Locally declared aliases are added to the client command dispatcher when
+  their canonical server command is present.
 - Vanilla and server suggestions remain available when no local definition matches.
 
 ## Use from another mod
@@ -18,7 +20,7 @@ It provides a reusable CommandKit API for other client mods.
 Maven coordinates:
 
 ```text
-com.mythup:commandkit:1.0.0+26.2
+com.mythup:commandkit:1.1.0+26.2
 ```
 
 ```groovy
@@ -29,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.mythup:commandkit:1.0.0+26.2"
+    implementation "com.mythup:commandkit:1.1.0+26.2"
 }
 ```
 
@@ -48,6 +50,11 @@ CommandCompletion.register(language);
 
 Install the published `commandkit` jar as a separate Fabric mod.
 Consumer mods must not add another `CommandSuggestions` mixin.
+
+When a command has aliases, CommandKit registers those aliases in the client
+Brigadier dispatcher after the server command tree is received. An alias
+redirects to the canonical server node, so it receives the same server
+completion behavior without changing command execution or server permissions.
 
 ## Build
 

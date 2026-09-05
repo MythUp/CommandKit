@@ -1,10 +1,17 @@
 package com.mythup.commandkit;
 
 import com.mojang.brigadier.context.StringRange;
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.commands.SharedSuggestionProvider;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -41,6 +48,117 @@ public final class CommandCompletion {
         ROOTS.clear();
     }
 
+    /**
+     * Adds every active local command and alias to the client dispatcher.
+     * Existing server nodes are left untouched.
+     */
+    public static synchronized void registerCommands(
+            CommandDispatcher<SharedSuggestionProvider> dispatcher
+    ) {
+        if (dispatcher == null) {
+            return;
+        }
+
+        for (com.mythup.commandkit.CommandNode command
+                : new java.util.LinkedHashSet<>(ROOTS.values())) {
+            for (String alias : command.names()) {
+                com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider> existing =
+                        dispatcher.getRoot().getChild(alias);
+                if (existing != null) {
+                    if (!alias.equalsIgnoreCase(command.primaryName())) {
+                        com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider> canonical =
+                                dispatcher.getRoot().getChild(command.primaryName());
+                        if (canonical != null) {
+                            removeRootChild(dispatcher, alias);
+                            dispatcher.register(LiteralArgumentBuilder
+                                    .<SharedSuggestionProvider>literal(alias)
+                                    .redirect(canonical));
+                        }
+                    }
+                    continue;
+                }
+
+                com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider> canonical =
+                        dispatcher.getRoot().getChild(command.primaryName());
+                if (canonical != null && !alias.equalsIgnoreCase(command.primaryName())) {
+                    dispatcher.register(LiteralArgumentBuilder
+                            .<SharedSuggestionProvider>literal(alias)
+                            .redirect(canonical));
+                } else {
+                    dispatcher.register(buildLiteral(command, alias));
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void removeRootChild(
+            CommandDispatcher<SharedSuggestionProvider> dispatcher,
+            String name
+    ) {
+        try {
+            Field childrenField = com.mojang.brigadier.tree.CommandNode.class
+                    .getDeclaredField("children");
+            childrenField.setAccessible(true);
+            Map<String, com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider>> children =
+                    (Map<String, com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider>>)
+                            childrenField.get(dispatcher.getRoot());
+            children.remove(name.toLowerCase(Locale.ROOT));
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException("Unable to replace a client command alias", exception);
+        }
+    }
+
+    private static LiteralArgumentBuilder<SharedSuggestionProvider> buildLiteral(
+            com.mythup.commandkit.CommandNode node,
+            String name
+    ) {
+        LiteralArgumentBuilder<SharedSuggestionProvider> builder =
+                LiteralArgumentBuilder.literal(name);
+        appendArguments(builder, node);
+        return builder;
+    }
+
+    private static void appendArguments(
+            ArgumentBuilder<SharedSuggestionProvider, ?> parent,
+            com.mythup.commandkit.CommandNode node
+    ) {
+        ArgumentBuilder<SharedSuggestionProvider, ?> current = parent;
+        for (CommandArgument argument : node.arguments()) {
+            RequiredArgumentBuilder<SharedSuggestionProvider, String> argumentBuilder =
+                    RequiredArgumentBuilder.argument(
+                            argument.name(),
+                            argument.type() == ArgumentType.REST_MESSAGE
+                                    ? StringArgumentType.greedyString()
+                                    : StringArgumentType.word()
+                    );
+            argumentBuilder.suggests((context, suggestionsBuilder) -> {
+                suggestArgument(suggestionsBuilder, argument, context.getInput());
+                return java.util.concurrent.CompletableFuture.completedFuture(
+                        suggestionsBuilder.build()
+                );
+            });
+            current.then(argumentBuilder);
+            current = argumentBuilder;
+        }
+        for (com.mythup.commandkit.CommandNode child : node.children().values()) {
+            for (String childName : child.names()) {
+                current.then(buildLiteral(child, childName));
+            }
+        }
+    }
+
+    private static void suggestArgument(
+            SuggestionsBuilder builder,
+            CommandArgument argument,
+            String input
+    ) {
+        CompletionContext context = new CompletionContext(input);
+        for (String value : valuesFor(argument, context)) {
+            builder.suggest(value);
+        }
+    }
+
     public static Suggestions getSuggestions(String input) {
         if (input == null || input.isBlank()) {
             return null;
@@ -72,7 +190,9 @@ public final class CommandCompletion {
             } else {
                 CommandNode child = current.children().get(token.toLowerCase(Locale.ROOT));
                 if (child == null) {
-                    partialCommandToken = !endsWithSpace && token.equals(tokens[tokens.length - 1]);
+                    partialCommandToken = !endsWithSpace
+                            && token.equals(tokens[tokens.length - 1])
+                            && current.arguments().isEmpty();
                     commandPathMatched = false;
                     break;
                 }

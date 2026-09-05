@@ -32,4 +32,4 @@ jobs:
       - name: Upload mod JAR to release
         uses: softprops/action-gh-release@v2
         with:
-          files: build/libs/hypixelcommands-*.jar
+          files: build/libs/commandkit-*.jar

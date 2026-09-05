@@ -1,5 +1,7 @@
 # CommandKit
 
+[![CurseForge](https://img.shields.io/curseforge/dt/1681891?logo=curseforge&label=CurseForge)](https://www.curseforge.com/minecraft/mc-mods/commandkit)
+
 CommandKit is a client-only Fabric library mod for Minecraft 26.2.
 It provides a reusable CommandKit API for other client mods.
 

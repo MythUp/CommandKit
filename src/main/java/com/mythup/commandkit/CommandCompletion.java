@@ -1,4 +1,4 @@
-package com.hypixelcommands.commandkit;
+package com.mythup.commandkit;
 
 import com.mojang.brigadier.context.StringRange;
 import com.mojang.brigadier.suggestion.Suggestion;

@@ -1,4 +1,4 @@
-package com.hypixelcommands.commandkit;
+package com.mythup.commandkit;
 
 /**
  * The kinds of values understood by the local completion engine.

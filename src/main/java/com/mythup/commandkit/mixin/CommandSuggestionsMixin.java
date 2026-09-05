@@ -1,6 +1,6 @@
-package com.hypixelcommands.commandkit.mixin;
+package com.mythup.commandkit.mixin;
 
-import com.hypixelcommands.commandkit.CommandCompletion;
+import com.mythup.commandkit.CommandCompletion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import net.minecraft.client.gui.components.CommandSuggestions;
 import net.minecraft.client.gui.components.EditBox;

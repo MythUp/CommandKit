@@ -38,7 +38,6 @@ java {
     }
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
-    withSourcesJar()
 }
 
 jar {
@@ -51,7 +50,6 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifact(tasks.named("jar"))
-            artifact(tasks.named("sourcesJar"))
             pom {
                 name = "CommandKit"
                 description = "Generic client-side command completion library for Fabric"

@@ -1,4 +1,4 @@
-package com.hypixelcommands.commandkit;
+package com.mythup.commandkit;
 
 import net.minecraft.client.Minecraft;
 

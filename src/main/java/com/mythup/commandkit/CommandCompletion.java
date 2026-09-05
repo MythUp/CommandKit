@@ -58,11 +58,13 @@ public final class CommandCompletion {
         CommandNode current = null;
         int commandDepth = 0;
         boolean commandPathMatched = true;
+        boolean partialCommandToken = false;
 
         for (String token : tokens) {
             if (current == null) {
                 CommandNode root = ROOTS.get(token.toLowerCase(Locale.ROOT));
                 if (root == null) {
+                    partialCommandToken = !endsWithSpace && token.equals(tokens[tokens.length - 1]);
                     commandPathMatched = false;
                     break;
                 }
@@ -70,6 +72,7 @@ public final class CommandCompletion {
             } else {
                 CommandNode child = current.children().get(token.toLowerCase(Locale.ROOT));
                 if (child == null) {
+                    partialCommandToken = !endsWithSpace && token.equals(tokens[tokens.length - 1]);
                     commandPathMatched = false;
                     break;
                 }
@@ -94,7 +97,8 @@ public final class CommandCompletion {
                     consumedArgs,
                     endsWithSpace
             );
-            if (!commandPathMatched && (!consumedArgumentsValid || !argumentSlotAvailable)) {
+            if (!commandPathMatched && !partialCommandToken
+                    && (!consumedArgumentsValid || !argumentSlotAvailable)) {
                 return null;
             }
 
@@ -103,7 +107,7 @@ public final class CommandCompletion {
             if (argumentIndex >= 0 && argumentIndex < current.arguments().size()) {
                 arguments = parameterSuggestions(raw, current.arguments().get(argumentIndex), currentWord, context);
             }
-            Suggestions children = consumedArgs == 0
+            Suggestions children = consumedArgs == 0 && (commandPathMatched || partialCommandToken)
                     ? childSuggestions(current, currentWord, raw, context)
                     : null;
             if (arguments != null && children != null) {
@@ -116,7 +120,7 @@ public final class CommandCompletion {
         }
 
         if (current == null) {
-            if (tokens.length > 1 || endsWithSpace) {
+            if (tokens.length > 1 && !partialCommandToken || endsWithSpace) {
                 return null;
             }
             return rootSuggestions(currentWord, raw, context);

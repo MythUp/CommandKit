@@ -21,8 +21,9 @@ com.mythup:commandkit:1.0.0+26.2
 
 ```groovy
 repositories {
-    mavenLocal()
-    // Add your release Maven repository here.
+    maven {
+        url = uri("https://maven.pkg.github.com/MythUp/CommandKit")
+    }
 }
 
 dependencies {
@@ -52,6 +53,11 @@ Consumer mods must not add another `CommandSuggestions` mixin.
 gradlew build
 gradlew publishMavenJavaPublicationToMavenLocal
 ```
+
+For GitHub Actions, the repository must provide `GITHUB_ACTOR` and
+`GITHUB_TOKEN`, with `packages: write` for publishing and `packages: read` for
+consumers. The package must be granted access to the `MythUp/HypixelCommands`
+repository in GitHub package settings.
 
 The project requires Java 25, Fabric Loader 0.19.3, and Minecraft 26.2.
 

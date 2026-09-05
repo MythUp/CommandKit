@@ -3,9 +3,11 @@ name: Build on Release
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   build:
@@ -28,6 +30,12 @@ jobs:
 
       - name: Build
         run: ./gradlew build
+
+      - name: Publish Maven package
+        run: ./gradlew publishMavenJavaPublicationToGitHubPackagesRepository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
 
       - name: Upload mod JAR to release
         uses: softprops/action-gh-release@v2

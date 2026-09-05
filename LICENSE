@@ -1,0 +1,102 @@
+# CommandKit Source-Available License
+
+Copyright (c) 2026 CommandKit Contributors
+
+## 1. Grant of Rights
+
+Subject to the terms and conditions of this license, permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated source code (the "Software") to:
+
+* Use the Software for personal and non-commercial purposes.
+* Study and inspect the source code of the Software.
+* Modify the Software.
+* Create and maintain forks of the Software.
+* Distribute original or modified versions of the Software.
+* Include the Software, original or modified, in Minecraft modpacks distributed free of charge.
+* Distribute the Software as part of a free Minecraft mod collection or similar non-commercial distribution.
+
+## 2. Attribution
+
+Any distribution of the Software, whether original or modified, must:
+
+* Retain this license.
+* Retain all existing copyright notices and attribution notices.
+* Clearly state that the distributed Software is based on CommandKit when distributing a modified version or fork.
+
+You may not present a modified version of the Software as the original CommandKit project.
+
+## 3. Non-Commercial Use
+
+The Software may not be used for commercial purposes.
+
+Without limiting the foregoing, the following activities are prohibited without explicit written permission from the copyright holder:
+
+* Selling the Software or a modified version of the Software.
+* Selling access to the Software or its functionality.
+* Including the Software in a paid product or service.
+* Using the Software as part of a commercial service, subscription, or monetized platform.
+* Charging a fee specifically for access to the Software or its functionality.
+
+Free distribution of the Software, including through free Minecraft modpacks, is permitted.
+
+## 4. Code Reuse
+
+The source code of the Software is provided for the purposes of transparency, study, modification, and development of forks.
+
+You may not copy, extract, reuse, or incorporate substantial portions of the Software's source code into another independent project that is not a fork or derivative version of CommandKit.
+
+This restriction includes, but is not limited to:
+
+* Copying individual source files or substantial portions of source files into another project.
+* Copying classes, systems, or significant implementations from the Software into another project.
+* Reimplementing a substantial portion of the Software by directly translating, adapting, or porting its source code.
+* Using the Software's source code as the basis for an unrelated project.
+
+This restriction does not prohibit creating a fork or derivative version of CommandKit, provided that such fork remains subject to this license.
+
+## 5. Forks and Derivative Works
+
+Forks and modified versions of CommandKit are permitted.
+
+A fork may:
+
+* Add new features.
+* Modify existing functionality.
+* Remove functionality.
+* Fix bugs.
+* Adapt the Software to different Minecraft versions or environments.
+
+Forks and derivative versions must retain the attribution and licensing requirements of this license and remain non-commercial.
+
+## 6. Modpacks
+
+The Software may be included in Minecraft modpacks distributed free of charge.
+
+A modpack may include the Software without obtaining additional permission, provided that:
+
+* The Software is not sold separately as part of the transaction.
+* The modpack itself does not charge specifically for access to CommandKit.
+* The original license and attribution notices remain available to users.
+
+## 7. Trademarks and Project Identity
+
+This license does not grant permission to use the CommandKit name, logo, branding, or other project identifiers in a way that falsely suggests official endorsement or affiliation.
+
+Forks and modified versions should use a distinct name and branding unless otherwise permitted by the copyright holder.
+
+## 8. No Warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## 9. Copyright Holder Permission
+
+The copyright holder may grant additional permissions or exceptions to this license on a case-by-case basis.
+
+Any such permission must be provided explicitly in writing.
+
+## 10. Acceptance
+
+By using, modifying, forking, or distributing the Software, you agree to be bound by the terms of this license.
+
+If you do not agree to these terms, you may not use, modify, fork, or distribute the Software.

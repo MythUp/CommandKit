@@ -2,7 +2,7 @@
 
 [![CurseForge](https://img.shields.io/curseforge/dt/1681891?logo=curseforge&label=CurseForge)](https://www.curseforge.com/minecraft/mc-mods/commandkit)
 
-CommandKit is a client-only Fabric library mod for Minecraft 26.2.
+CommandKit is a client-only Fabric library mod for Minecraft 26.2+.
 It provides a reusable CommandKit API for other client mods.
 
 ## Features
@@ -20,7 +20,7 @@ It provides a reusable CommandKit API for other client mods.
 Maven coordinates:
 
 ```text
-com.mythup:commandkit:1.1.0+26.2
+com.mythup:commandkit:1.1.0+26.2+
 ```
 
 ```groovy
@@ -31,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.mythup:commandkit:1.1.0+26.2"
+    implementation "com.mythup:commandkit:1.1.0+26.2+"
 }
 ```
 
@@ -68,7 +68,7 @@ For GitHub Actions, the repository must provide `GITHUB_ACTOR` and
 consumers. The package must be granted access to the `MythUp/HypixelCommands`
 repository in GitHub package settings.
 
-The project requires Java 25, Fabric Loader 0.19.3, and Minecraft 26.2.
+The project requires Java 25, Fabric Loader 0.19.3, and Minecraft 26.2+.
 
 ## License
 

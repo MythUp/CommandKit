@@ -65,7 +65,7 @@ gradlew publishMavenJavaPublicationToMavenLocal
 
 For GitHub Actions, the repository must provide `GITHUB_ACTOR` and
 `GITHUB_TOKEN`, with `packages: write` for publishing and `packages: read` for
-consumers. The package must be granted access to the `MythUp/HypixelCommands`
+consumers. The package must be granted access to the `MythUp/CommandKit`
 repository in GitHub package settings.
 
 The project requires Java 25, Fabric Loader 0.19.3, and Minecraft 26.2+.

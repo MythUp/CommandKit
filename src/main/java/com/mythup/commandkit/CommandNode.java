@@ -47,9 +47,35 @@ public final class CommandNode {
     public CommandNode then(CommandNode child) {
         if (child == null) {
             throw new IllegalArgumentException("Child command cannot be null");
+        } else {
+            for (String lookupName : child.names) {
+                this.children.put(lookupName.toLowerCase(Locale.ROOT), child);
+            }
+            return this;
         }
-        for (String lookupName : child.names) {
-            children.put(lookupName.toLowerCase(Locale.ROOT), child);
+    }
+
+    public CommandNode then(CommandNode child, CommandArgument argument) {
+        if (child == null) {
+            throw new IllegalArgumentException("Child command cannot be null");
+        }
+        this.then(child);
+
+        if (argument != null) {
+            child.argument(argument);
+        }
+
+        return this;
+    }
+
+    public CommandNode then(CommandNode child, CommandArgument... arguments) {
+        this.then(child);
+        if (arguments != null) {
+            for (CommandArgument arg : arguments) {
+                if (arg != null) {
+                    child.argument(arg);
+                }
+            }
         }
         return this;
     }

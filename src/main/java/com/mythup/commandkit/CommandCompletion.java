@@ -16,8 +16,11 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -27,7 +30,14 @@ import java.util.Set;
  * Registry and suggestion engine for client-side command definitions.
  */
 public final class CommandCompletion {
-    private static final Map<String, CommandNode> ROOTS = new LinkedHashMap<>();
+    /**
+     * Command name to the nodes registered under it. Several mods may register
+     * commands sharing the same name; every node keeps its own activation
+     * predicate so only the definitions valid for the current server are used.
+     */
+    private static final Map<String, List<CommandNode>> ROOTS = new LinkedHashMap<>();
+    private static final Set<CommandNode> REGISTERED =
+            Collections.newSetFromMap(new IdentityHashMap<>());
 
     private CommandCompletion() {
     }
@@ -39,13 +49,20 @@ public final class CommandCompletion {
         if (command == null) {
             throw new IllegalArgumentException("Command cannot be null");
         }
+        // Registration must stay idempotent: consumer mods may rebuild their
+        // command tree more than once.
+        if (!REGISTERED.add(command)) {
+            return;
+        }
         for (String name : command.names()) {
-            ROOTS.put(name.toLowerCase(Locale.ROOT), command);
+            ROOTS.computeIfAbsent(name.toLowerCase(Locale.ROOT), key -> new ArrayList<>())
+                    .add(command);
         }
     }
 
     public static synchronized void clear() {
         ROOTS.clear();
+        REGISTERED.clear();
     }
 
     /**
@@ -59,11 +76,16 @@ public final class CommandCompletion {
             return;
         }
 
-        for (com.mythup.commandkit.CommandNode command
-                : new java.util.LinkedHashSet<>(ROOTS.values())) {
+        Set<com.mythup.commandkit.CommandNode> commands = new LinkedHashSet<>();
+        for (List<com.mythup.commandkit.CommandNode> nodes : ROOTS.values()) {
+            commands.addAll(nodes);
+        }
+        for (com.mythup.commandkit.CommandNode command : commands) {
             for (String alias : command.names()) {
                 com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider> existing =
                         dispatcher.getRoot().getChild(alias);
+                boolean alreadyRedirected = false;
+
                 if (existing != null) {
                     if (!alias.equalsIgnoreCase(command.primaryName())) {
                         com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider> canonical =
@@ -71,21 +93,32 @@ public final class CommandCompletion {
                         if (canonical != null) {
                             removeRootChild(dispatcher, alias);
                             dispatcher.register(LiteralArgumentBuilder
-                                    .<SharedSuggestionProvider>literal(alias)
-                                    .redirect(canonical));
-                        }
-                    }
-                    continue;
-                }
-
-                com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider> canonical =
-                        dispatcher.getRoot().getChild(command.primaryName());
-                if (canonical != null && !alias.equalsIgnoreCase(command.primaryName())) {
-                    dispatcher.register(LiteralArgumentBuilder
                             .<SharedSuggestionProvider>literal(alias)
                             .redirect(canonical));
-                } else {
-                    dispatcher.register(buildLiteral(command, alias));
+                            alreadyRedirected = true;
+                        } else {
+                            dispatcher.register(buildLiteral(command, alias));
+                            alreadyRedirected = true;
+                        }
+                    }
+                    // If the alias is the primary name, the existing command is the same,
+                    // mark as handled to avoid re-registration below
+                    if (alias.equalsIgnoreCase(command.primaryName())) {
+                        alreadyRedirected = true;
+                    }
+                }
+
+                // Only register as literal if we haven't already handled the alias
+                if (!alreadyRedirected) {
+                    com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider> canonical =
+                            dispatcher.getRoot().getChild(command.primaryName());
+                    if (canonical != null && !alias.equalsIgnoreCase(command.primaryName())) {
+                        dispatcher.register(LiteralArgumentBuilder
+                                .<SharedSuggestionProvider>literal(alias)
+                                .redirect(canonical));
+                    } else {
+                        dispatcher.register(buildLiteral(command, alias));
+                    }
                 }
             }
         }
@@ -180,7 +213,7 @@ public final class CommandCompletion {
 
         for (String token : tokens) {
             if (current == null) {
-                CommandNode root = ROOTS.get(token.toLowerCase(Locale.ROOT));
+                CommandNode root = firstActiveRoot(token, context);
                 if (root == null) {
                     partialCommandToken = !endsWithSpace && token.equals(tokens[tokens.length - 1]);
                     commandPathMatched = false;
@@ -291,16 +324,38 @@ public final class CommandCompletion {
         return Math.min(consumedArgs, lastIndex);
     }
 
+    /**
+     * Resolves a top-level command token to the first node whose activation
+     * predicate matches the current server, so mods sharing a command name
+     * (each restricted to its own server) coexist.
+     */
+    private static CommandNode firstActiveRoot(String token, CompletionContext context) {
+        List<CommandNode> candidates = ROOTS.get(token.toLowerCase(Locale.ROOT));
+        if (candidates == null) {
+            return null;
+        }
+        for (CommandNode candidate : candidates) {
+            if (candidate.isActive(context)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
     private static Suggestions rootSuggestions(String currentWord, String raw, CompletionContext context) {
         List<Suggestion> suggestions = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         String prefix = currentWord.toLowerCase(Locale.ROOT);
-        for (Map.Entry<String, CommandNode> entry : ROOTS.entrySet()) {
+        for (Map.Entry<String, List<CommandNode>> entry : ROOTS.entrySet()) {
             String name = entry.getKey();
-            if (seen.add(name)
-                    && entry.getValue().isActive(context)
-                    && name.startsWith(prefix)) {
-                suggestions.add(new Suggestion(range(raw), name));
+            if (!seen.add(name) || !name.startsWith(prefix)) {
+                continue;
+            }
+            for (CommandNode candidate : entry.getValue()) {
+                if (candidate.isActive(context)) {
+                    suggestions.add(new Suggestion(range(raw), name));
+                    break;
+                }
             }
         }
         return suggestions.isEmpty() ? null : new Suggestions(range(raw), suggestions);

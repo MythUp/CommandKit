@@ -252,7 +252,7 @@ public final class CommandCompletion {
             );
             if (!commandPathMatched && !partialCommandToken
                     && (!consumedArgumentsValid || !argumentSlotAvailable)) {
-                return null;
+                return emptyWhenLeaf(raw, current);
             }
 
             int argumentIndex = resolveArgumentIndex(current.arguments(), consumedArgs, endsWithSpace);
@@ -269,7 +269,10 @@ public final class CommandCompletion {
             if (arguments != null) {
                 return arguments;
             }
-            return children;
+            if (children != null) {
+                return children;
+            }
+            return emptyWhenLeaf(raw, current);
         }
 
         if (current == null) {
@@ -281,8 +284,21 @@ public final class CommandCompletion {
         return childSuggestions(current, currentWord, raw, context);
     }
 
-    private static boolean argumentsCanConsume(List<CommandArgument> arguments, int consumedArgs) {
-        if (consumedArgs <= arguments.size()) {
+    /**
+     * A locally defined command path that fully matched but has nothing left
+     * to complete (no arguments, no subcommands): return an explicit empty
+     * result so the server-provided tree cannot propose unrelated completions
+     * (for example player names after a leaf command). Returns null for nodes
+     * that can still take input, letting vanilla fill the gap.
+     */
+    private static Suggestions emptyWhenLeaf(String raw, CommandNode node) {
+        if (node.arguments().isEmpty() && node.children().isEmpty()) {
+            return new Suggestions(range(raw), List.of());
+        }
+        return null;
+    }
+
+    private static boolean argumentsCanConsume(List<CommandArgument> arguments, int consumedArgs) {        if (consumedArgs <= arguments.size()) {
             return true;
         }
         return !arguments.isEmpty() && arguments.get(arguments.size() - 1).repeatable();

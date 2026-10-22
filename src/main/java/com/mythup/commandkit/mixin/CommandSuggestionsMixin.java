@@ -56,6 +56,10 @@ public abstract class CommandSuggestionsMixin {
         }
 
         pendingSuggestions = CompletableFuture.completedFuture(custom);
+        if (custom.isEmpty()) {
+            suggestions = null;
+            return;
+        }
         commandkit$showCustom(custom, false);
     }
 
@@ -71,6 +75,11 @@ public abstract class CommandSuggestionsMixin {
             return;
         }
 
+        if (custom.isEmpty()) {
+            suggestions = null;
+            ci.cancel();
+            return;
+        }
         commandkit$showCustom(custom, narrateFirstEntry);
         ci.cancel();
     }
@@ -86,8 +95,10 @@ public abstract class CommandSuggestionsMixin {
             return null;
         }
 
-        Suggestions custom = CommandCompletion.getSuggestions(inputText);
-        return custom == null || custom.isEmpty() ? null : custom;
+        // null: no local definition involved, let vanilla handle it.
+        // empty: a local definition matches and accepts no further input,
+        // explicitly suppress vanilla/server suggestions.
+        return CommandCompletion.getSuggestions(inputText);
     }
 
     private void commandkit$showCustom(Suggestions custom, boolean narrateFirstEntry) {

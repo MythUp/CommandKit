@@ -14,6 +14,8 @@ It provides a reusable CommandKit API for other client mods.
 - Locally declared aliases are added to the client command dispatcher when
   their canonical server command is present.
 - Vanilla and server suggestions remain available when no local definition matches.
+- Leaf commands that accept no further input suppress server suggestions, so
+  unrelated completions (for example player names) are not proposed after them.
 
 ## Use from another mod
 

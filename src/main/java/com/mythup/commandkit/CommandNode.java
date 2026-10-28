@@ -17,6 +17,7 @@ public final class CommandNode {
     private final Map<String, CommandNode> children = new LinkedHashMap<>();
     private final List<CommandArgument> arguments = new ArrayList<>();
     private Predicate<CompletionContext> contextPredicate = context -> true;
+    private String serverIpPattern = null;
 
     public CommandNode(String... names) {
         if (names == null || names.length == 0 || names[0] == null || names[0].isBlank()) {
@@ -41,6 +42,58 @@ public final class CommandNode {
         if (alias != null && !alias.isBlank() && !names.contains(alias)) {
             names.add(alias);
         }
+        return this;
+    }
+
+    /** Lists the command aliases for this node. */
+    List<String> names() {
+        return names;
+    }
+
+    /** Returns the arguments of this command node. */
+    List<CommandArgument> arguments() {
+        return arguments;
+    }
+
+    /** Returns the children of this command node. */
+    Map<String, CommandNode> children() {
+        return children;
+    }
+
+    /** The primary name of this command node. */
+    String primaryName() {
+        return name;
+    }
+
+    /** Sets the server IP pattern for this command node (e.g. "hypixel.net", "mccentral.org"). */
+    public CommandNode serverIp(String ipPattern) {
+        this.serverIpPattern = ipPattern;
+        return this;
+    }
+
+    /** Checks if the current server IP matches the configured pattern. */
+    private boolean matchesServerIpPattern(CompletionContext context) {
+        if (serverIpPattern == null) {
+            return true; // no pattern = always active
+        }
+        String currentIp = context.serverAddress();
+        if (currentIp == null) {
+            return false; // no server = not active
+        }
+        String lowerIp = currentIp.toLowerCase(Locale.ROOT);
+        return lowerIp.contains(serverIpPattern.toLowerCase(Locale.ROOT));
+    }
+
+    /** Checks if this command node is active for the given completion context. */
+    boolean isActive(CompletionContext context) {
+        boolean predicateActive = contextPredicate.test(context);
+        boolean serverMatches = matchesServerIpPattern(context);
+        return predicateActive && serverMatches;
+    }
+
+    /** Restricts this command tree to a particular client context. */
+    public CommandNode when(Predicate<CompletionContext> predicate) {
+        contextPredicate = predicate == null ? context -> true : predicate;
         return this;
     }
 
@@ -83,33 +136,5 @@ public final class CommandNode {
     public CommandNode argument(CommandArgument argument) {
         arguments.add(argument);
         return this;
-    }
-
-    /**
-     * Restricts this command tree to a particular client context.
-     */
-    public CommandNode when(Predicate<CompletionContext> predicate) {
-        contextPredicate = predicate == null ? context -> true : predicate;
-        return this;
-    }
-
-    String primaryName() {
-        return name;
-    }
-
-    List<String> names() {
-        return names;
-    }
-
-    Map<String, CommandNode> children() {
-        return children;
-    }
-
-    List<CommandArgument> arguments() {
-        return arguments;
-    }
-
-    boolean isActive(CompletionContext context) {
-        return contextPredicate.test(context);
     }
 }

@@ -76,11 +76,19 @@ public final class CommandCompletion {
             return;
         }
 
+        CompletionContext context = new CompletionContext("");
+
         Set<com.mythup.commandkit.CommandNode> commands = new LinkedHashSet<>();
         for (List<com.mythup.commandkit.CommandNode> nodes : ROOTS.values()) {
             commands.addAll(nodes);
         }
         for (com.mythup.commandkit.CommandNode command : commands) {
+            // Only register commands that are active for the currently
+            // connected server; otherwise vanilla tab-completion would
+            // suggest them regardless of the target server.
+            if (!command.isActive(context)) {
+                continue;
+            }
             for (String alias : command.names()) {
                 com.mojang.brigadier.tree.CommandNode<SharedSuggestionProvider> existing =
                         dispatcher.getRoot().getChild(alias);
